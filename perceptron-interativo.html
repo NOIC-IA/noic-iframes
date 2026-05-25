@@ -384,11 +384,11 @@ function drawDiagram(inputs, b, sum, out) {
     const midX = (ax1 + endX) / 2;
     const midY = (y + endY) / 2;
     const angleDeg = Math.atan2(endY - y, endX - ax1) * 180 / Math.PI;
-    svg += `<text x="${midX}" y="${midY - 10*S}" font-family="${interFont}" font-size="${fontXS}" fill="#555" text-anchor="middle" transform="rotate(${angleDeg}, ${midX}, ${midY - 10*S})">× peso<tspan font-family="${cmFont}" baseline-shift="sub" font-size="${fontSubS}">${inp.n}</tspan> <tspan font-family="${cmFont}" font-size="${fontSubS}" fill="#888">= ${inp.w.toFixed(1)}</tspan></text>`;
+    svg += `<text x="${midX}" y="${midY - 10*S}" font-family="${interFont}" font-size="${fontXS}" fill="#555" text-anchor="middle" transform="rotate(${angleDeg}, ${midX}, ${midY - 10*S})">× peso<tspan font-family="${cmFont}" font-size="${fontSubS}" dy="${4*S}">${inp.n}</tspan><tspan dy="${-4*S}"> </tspan><tspan font-family="${cmFont}" font-size="${fontSubS}" fill="#888">= ${inp.w.toFixed(1)}</tspan></text>`;
 
     // Input circle
     svg += `<circle cx="${inputX}" cy="${y}" r="${inputR}" fill="#e8eef4" stroke="#333" stroke-width="${strokeW}"/>`;
-    svg += `<text x="${inputX}" y="${y - 6*S}" font-family="${cmFont}" font-size="${fontM}" font-style="italic" fill="#111" text-anchor="middle" dominant-baseline="central">x<tspan font-size="${fontSub}" baseline-shift="sub" font-style="normal">${inp.n}</tspan></text>`;
+    svg += `<text x="${inputX}" y="${y - 6*S}" font-family="${cmFont}" font-size="${fontM}" font-style="italic" fill="#111" text-anchor="middle" dominant-baseline="central">x<tspan font-size="${fontSub}" dy="${5*S}" font-style="normal">${inp.n}</tspan></text>`;
 
     // Value below variable name inside circle
     svg += `<text x="${inputX}" y="${y + 14*S}" font-family="${cmFont}" font-size="${fontSubS}" fill="#888" text-anchor="middle">= ${inp.x.toFixed(1)}</text>`;
