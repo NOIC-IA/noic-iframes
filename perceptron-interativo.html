@@ -427,14 +427,15 @@ addInput();
 
 update();
 
-function notifyParentHeight() {
-  const height = document.documentElement.scrollHeight;
+function resizeParentIframe() {
+  document.body.style.height = 'auto';
+  const height = document.body.offsetHeight;
   window.parent.postMessage({ type: 'resize', height: height }, '*');
 }
 
-const resizeObserver = new ResizeObserver(() => notifyParentHeight());
+const resizeObserver = new ResizeObserver(() => resizeParentIframe());
 resizeObserver.observe(document.body);
-notifyParentHeight();
+resizeParentIframe();
 </script>
 </body>
 </html>
