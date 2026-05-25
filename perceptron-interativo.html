@@ -426,6 +426,15 @@ addInput();
 addInput();
 
 update();
+
+function notifyParentHeight() {
+  const height = document.documentElement.scrollHeight;
+  window.parent.postMessage({ type: 'resize', height: height }, '*');
+}
+
+const resizeObserver = new ResizeObserver(() => notifyParentHeight());
+resizeObserver.observe(document.body);
+notifyParentHeight();
 </script>
 </body>
 </html>
