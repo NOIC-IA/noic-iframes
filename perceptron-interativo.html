@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perceptron Interativo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@latest/fonts.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #fff;
+    color: #111;
+    padding: 24px;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  h3 {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 24px;
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    background: #fafafa;
+    border-radius: 8px;
+    position: relative;
+  }
+  .input-row .remove-btn {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    background: none;
+    border: none;
+    color: #bbb;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .input-row .remove-btn:hover {
+    background: #f8d7da;
+    color: #721c24;
+  }
+  .slider-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .slider-group label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #333;
+  }
+  .slider-group .row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .slider-group input[type="range"] {
+    flex: 1;
+    accent-color: #007cba;
+  }
+  .slider-group .val {
+    font-family: 'Computer Modern Serif', 'CMU Serif', serif;
+    font-size: 0.95rem;
+    min-width: 42px;
+    text-align: right;
+  }
+  .bias-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 4px;
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    background: #fafafa;
+    border-radius: 8px;
+  }
+  .buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .buttons button {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 8px 16px;
+    border: 1.5px solid #007cba;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .add-btn {
+    background: #007cba;
+    color: #fff;
+  }
+  .add-btn:hover {
+    background: #006aa3;
+  }
+  .computation {
+    background: #f8f7f5;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .computation .formula {
+    font-family: 'Computer Modern Serif', 'CMU Serif', serif;
+    font-size: 1.1rem;
+    line-height: 2;
+    color: #444;
+  }
+  .computation .formula .num { color: #111; }
+  .computation .formula .label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  .computation .formula .op {
+    font-family: 'Computer Modern Serif', 'CMU Serif', serif;
+  }
+  .math {
+    font-family: 'Computer Modern Serif', 'CMU Serif', serif;
+    font-style: italic;
+    font-size: 1.05em;
+  }
+  .math sub {
+    font-family: 'Computer Modern Serif', 'CMU Serif', serif;
+    font-style: normal;
+  }
+  .result {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .result .sum-value {
+    font-family: 'Computer Modern Serif', 'CMU Serif', serif;
+    font-size: 1.6rem;
+  }
+  .result .arrow {
+    font-family: 'KaTeX_Main', 'Computer Modern Serif', serif;
+    font-size: 1.4rem;
+    color: #999;
+  }
+  .result .output {
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 8px 20px;
+    border-radius: 8px;
+  }
+  .output.fire { background: #d4edda; color: #155724; }
+  .output.silent { background: #f8d7da; color: #721c24; }
+  .sum-value.positive { color: #155724; }
+  .sum-value.negative { color: #721c24; }
+  .diagram-container {
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .diagram-container svg {
+    max-width: 100%;
+    height: auto;
+  }
+</style>
+</head>
+<body>
+
+<div class="buttons">
+  <button class="add-btn" onclick="addInput()">+ adicionar entrada</button>
+</div>
+
+<div id="inputs-container"></div>
+
+<div class="bias-row">
+  <div class="slider-group">
+    <label>viés</label>
+    <div class="row">
+      <input type="range" id="bias" min="-2" max="2" step="0.1" value="0.1">
+      <span class="val" id="bias-val">0.1</span>
+    </div>
+  </div>
+</div>
+
+<div class="diagram-container" id="diagram-container"></div>
+
+<div class="computation">
+  <div class="formula" id="formula"></div>
+  <div class="result">
+    <span class="sum-value" id="sum-display"></span>
+    <span class="arrow">→</span>
+    <span class="output" id="output-display"></span>
+  </div>
+</div>
+
+<script>
+let inputCount = 0;
+
+function addInput() {
+  inputCount++;
+  const n = inputCount;
+  const container = document.getElementById('inputs-container');
+
+  const row = document.createElement('div');
+  row.className = 'input-row';
+  row.id = `input-row-${n}`;
+  row.innerHTML = `
+    <button class="remove-btn" onclick="removeInput(${n})" title="remover">✕</button>
+    <div class="slider-group">
+      <label>entrada <span class="math">x<sub>${n}</sub></span></label>
+      <div class="row">
+        <input type="range" class="x-slider" data-n="${n}" min="-2" max="2" step="0.1" value="1">
+        <span class="val" id="x-val-${n}">1.0</span>
+      </div>
+    </div>
+    <div class="slider-group">
+      <label>peso<span class="math"><sub>${n}</sub></span></label>
+      <div class="row">
+        <input type="range" class="w-slider" data-n="${n}" min="-2" max="2" step="0.1" value="0.5">
+        <span class="val" id="w-val-${n}">0.5</span>
+      </div>
+    </div>
+  `;
+  container.appendChild(row);
+
+  row.querySelectorAll('input[type="range"]').forEach(s => {
+    s.addEventListener('input', update);
+  });
+
+  update();
+}
+
+function removeInput(n) {
+  const row = document.getElementById(`input-row-${n}`);
+  if (row) row.remove();
+  update();
+}
+
+function getInputs() {
+  const rows = document.querySelectorAll('.input-row');
+  const inputs = [];
+  rows.forEach(row => {
+    const xSlider = row.querySelector('.x-slider');
+    const wSlider = row.querySelector('.w-slider');
+    const n = xSlider.dataset.n;
+    inputs.push({
+      n: parseInt(n),
+      x: parseFloat(xSlider.value),
+      w: parseFloat(wSlider.value)
+    });
+  });
+  return inputs;
+}
+
+function update() {
+  const inputs = getInputs();
+  const b = parseFloat(document.getElementById('bias').value);
+  document.getElementById('bias-val').textContent = b.toFixed(1);
+
+  inputs.forEach(inp => {
+    document.getElementById(`x-val-${inp.n}`).textContent = inp.x.toFixed(1);
+    document.getElementById(`w-val-${inp.n}`).textContent = inp.w.toFixed(1);
+  });
+
+  const products = inputs.map(inp => inp.x * inp.w);
+  const sum = products.reduce((a, c) => a + c, 0) + b;
+  const out = sum >= 0 ? 1 : 0;
+
+  const op = (s) => `<span class="op">${s}</span>`;
+  const fmt = (n) => (n >= 0 ? `${op('+')} ${n.toFixed(2)}` : `${op('−')} ${Math.abs(n).toFixed(2)}`);
+
+  let labelLine = inputs.map(inp =>
+    `(<span class="math">x</span><sub>${inp.n}</sub> ${op('×')} <span class="label">peso</span><sub>${inp.n}</sub>)`
+  ).join(` ${op('+')} `);
+  labelLine += ` ${op('+')} <span class="label">viés</span>`;
+
+  let numLine = inputs.map(inp =>
+    `(<span class="num">${inp.x.toFixed(1)}</span> ${op('×')} <span class="num">${inp.w.toFixed(1)}</span>)`
+  ).join(` ${op('+')} `);
+  numLine += ` ${op('+')} <span class="num">${b.toFixed(1)}</span>`;
+
+  let midParts = [];
+  products.forEach((p, i) => {
+    if (i === 0) {
+      midParts.push(`<span class="num">${p.toFixed(2)}</span>`);
+    } else {
+      midParts.push(fmt(p));
+    }
+  });
+  midParts.push(fmt(b));
+  let midLine = `${op('=')} ${midParts.join(' ')}`;
+
+  let resultLine = `${op('=')} <span class="num">${sum.toFixed(2)}</span>`;
+
+  const formulaEl = document.getElementById('formula');
+  if (inputs.length === 0) {
+    formulaEl.innerHTML = `<span class="label">viés</span><br><span class="num">${b.toFixed(1)}</span><br>${op('=')} <span class="num">${b.toFixed(2)}</span>`;
+  } else {
+    formulaEl.innerHTML = `${labelLine}<br>${numLine}<br>${midLine}<br>${resultLine}`;
+  }
+
+  drawDiagram(inputs, b, sum, out);
+
+  const sumEl = document.getElementById('sum-display');
+  const geq = sum >= 0 ? '≥' : '<';
+  sumEl.innerHTML = '<span style="font-family:Inter,sans-serif;font-weight:400">resultado</span> = ' + sum.toFixed(2) + ` (${geq} 0)`;
+  sumEl.className = 'sum-value ' + (sum >= 0 ? 'positive' : 'negative');
+
+  const outEl = document.getElementById('output-display');
+  if (out === 1) {
+    outEl.innerHTML = '<span class="math" style="font-style:normal">1</span> (dispara)';
+    outEl.className = 'output fire';
+  } else {
+    outEl.innerHTML = '<span class="math" style="font-style:normal">0</span> (silencia)';
+    outEl.className = 'output silent';
+  }
+}
+
+function drawDiagram(inputs, b, sum, out) {
+  const container = document.getElementById('diagram-container');
+  const n = inputs.length;
+  if (n === 0) { container.innerHTML = ''; return; }
+
+  // ---- SCALE: change these to resize ----
+  const S = 1.5;   // scales circles, fonts, node sizes
+  const A = 1.15;  // scales arrow lengths / spacing independently
+
+  const inputSpacing = 80 * S;
+  const totalInputH = (n - 1) * inputSpacing;
+  const neuronY = Math.max(140 * A, 120 * A + totalInputH / 2);
+  const svgH = Math.max(320 * A, neuronY + totalInputH / 2 + 60 * S);
+  const biasTopPad = 30 * S;
+  const svgW = 660 * A;
+  const inputX = 70 * A;
+  const neuronX = 330 * A;
+  const neuronR = 44 * S;
+  const outputX = 560 * A;
+  const biasY = 30 * S;
+  const biasR = 22 * S;
+  const inputR = 28 * S;
+  const outputR = 28 * S;
+  const strokeW = 1.5;
+  const fontXL = 28 * S;
+  const fontL = 20 * S;
+  const fontM = 18 * S;
+  const fontS = 15 * S;
+  const fontXS = 13 * S;
+  const fontSub = 12 * S;
+  const fontSubS = 10 * S;
+
+  const cmFont = "'Computer Modern Serif', 'CMU Serif', serif";
+  const interFont = "'Inter', sans-serif";
+
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${svgW} ${svgH}" width="${svgW}" height="${svgH}">`;
+  svg += `<defs><marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#333"/></marker></defs>`;
+
+  // Input nodes and arrows
+  inputs.forEach((inp, i) => {
+    const y = neuronY - totalInputH / 2 + i * inputSpacing;
+
+    // Arrow from input to neuron
+    const ax1 = inputX + inputR;
+    const dx = neuronX - ax1;
+    const dy = neuronY - y;
+    const angle = Math.atan2(dy, dx);
+    const endX = neuronX - (neuronR + 2) * Math.cos(angle);
+    const endY = neuronY - (neuronR + 2) * Math.sin(angle);
+
+    svg += `<line x1="${ax1}" y1="${y}" x2="${endX}" y2="${endY}" stroke="#333" stroke-width="${strokeW}" marker-end="url(#ah)"/>`;
+
+    // Weight label on arrow (rotated to follow line)
+    const midX = (ax1 + endX) / 2;
+    const midY = (y + endY) / 2;
+    const angleDeg = Math.atan2(endY - y, endX - ax1) * 180 / Math.PI;
+    svg += `<text x="${midX}" y="${midY - 10*S}" font-family="${interFont}" font-size="${fontXS}" fill="#555" text-anchor="middle" transform="rotate(${angleDeg}, ${midX}, ${midY - 10*S})">× peso<tspan font-family="${cmFont}" baseline-shift="sub" font-size="${fontSubS}">${inp.n}</tspan> <tspan font-family="${cmFont}" font-size="${fontSubS}" fill="#888">= ${inp.w.toFixed(1)}</tspan></text>`;
+
+    // Input circle
+    svg += `<circle cx="${inputX}" cy="${y}" r="${inputR}" fill="#e8eef4" stroke="#333" stroke-width="${strokeW}"/>`;
+    svg += `<text x="${inputX}" y="${y - 6*S}" font-family="${cmFont}" font-size="${fontM}" font-style="italic" fill="#111" text-anchor="middle" dominant-baseline="central">x<tspan font-size="${fontSub}" baseline-shift="sub" font-style="normal">${inp.n}</tspan></text>`;
+
+    // Value below variable name inside circle
+    svg += `<text x="${inputX}" y="${y + 14*S}" font-family="${cmFont}" font-size="${fontSubS}" fill="#888" text-anchor="middle">= ${inp.x.toFixed(1)}</text>`;
+  });
+
+  // Bias arrow
+  svg += `<line x1="${neuronX}" y1="${biasY + biasR}" x2="${neuronX}" y2="${neuronY - neuronR - 2}" stroke="#333" stroke-width="${strokeW}" marker-end="url(#ah)"/>`;
+  svg += `<circle cx="${neuronX}" cy="${biasY}" r="${biasR}" fill="#fce4e4" stroke="#333" stroke-width="${strokeW}"/>`;
+  svg += `<text x="${neuronX}" y="${biasY - 4*S}" font-family="${interFont}" font-size="${fontXS}" fill="#111" text-anchor="middle" dominant-baseline="central">viés</text>`;
+  svg += `<text x="${neuronX}" y="${biasY + 10*S}" font-family="${cmFont}" font-size="${fontSubS}" fill="#888" text-anchor="middle">= ${b.toFixed(1)}</text>`;
+
+  // Neuron circle
+  svg += `<circle cx="${neuronX}" cy="${neuronY}" r="${neuronR}" fill="#fde8d0" stroke="#333" stroke-width="${strokeW}"/>`;
+  svg += `<text x="${neuronX}" y="${neuronY - 6*S}" font-family="${cmFont}" font-size="${fontXL}" fill="#333" text-anchor="middle" dominant-baseline="central">Σ</text>`;
+  svg += `<text x="${neuronX}" y="${neuronY + 14*S}" font-family="${cmFont}" font-size="${fontXS}" fill="#888" text-anchor="middle">= ${sum.toFixed(2)}</text>`;
+
+  // Arrow neuron → output
+  svg += `<line x1="${neuronX + neuronR}" y1="${neuronY}" x2="${outputX - outputR - 2}" y2="${neuronY}" stroke="#333" stroke-width="${strokeW}" marker-end="url(#ah)"/>`;
+  const midArrowX = (neuronX + neuronR + outputX - outputR) / 2;
+  svg += `<text x="${midArrowX}" y="${neuronY - 12*S}" font-family="${cmFont}" font-size="${fontS}" fill="#555" text-anchor="middle">≥ 0 <tspan font-family="${interFont}">?</tspan></text>`;
+
+  // Output circle
+  const outFill = out === 1 ? '#d4edda' : '#f8d7da';
+  const outColor = out === 1 ? '#155724' : '#721c24';
+  svg += `<circle cx="${outputX}" cy="${neuronY}" r="${outputR}" fill="${outFill}" stroke="#333" stroke-width="${strokeW}"/>`;
+  svg += `<text x="${outputX}" y="${neuronY + 1}" font-family="${cmFont}" font-size="${fontL}" fill="${outColor}" text-anchor="middle" dominant-baseline="central">${out}</text>`;
+
+  svg += `</svg>`;
+  container.innerHTML = svg;
+}
+
+document.getElementById('bias').addEventListener('input', update);
+
+addInput();
+addInput();
+
+update();
+</script>
+</body>
+</html>
