@@ -2,237 +2,263 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Logistic Regression Widget</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regressão Logística</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@latest/fonts.css">
 <style>
-  html, body {
-    margin:0;
-    padding:0;
-    height:510px; /* FIXED HEIGHT */
-    overflow:hidden; /* prevent scroll */
-  }
-  .sigmoid-widget {
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    max-width: 780px;
-    width: 100%;
-    height: 100%; /* fill body */
-    margin: 0 auto;
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
     background: #fff;
-    border: 1px solid #e6e6e6;
-    padding: 14px;
-    border-radius: 10px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.03);
-    box-sizing: border-box;
+    color: #111;
+    padding: 24px;
+    max-width: 700px;
+    margin: 0 auto;
   }
   .controls {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    align-items: center;
-    margin-bottom: 12px;
+    gap: 12px 24px;
+    margin-bottom: 16px;
   }
-  .control { display:flex; flex-direction: column; gap:6px; }
-  label { font-size: 0.85rem; color:#333; }
-  input[type="range"] { width:100%; }
-  .row { display:flex; gap:10px; align-items:center; }
-  .value {
-    min-width:64px;
-    text-align:center;
-    padding:6px 8px;
-    border-radius:6px;
-    border:1px solid #ddd;
-    background:#fafafa;
+  .slider-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .slider-group label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #333;
+  }
+  .slider-group .row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .slider-group input[type="range"] {
+    flex: 1;
+    accent-color: #007cba;
+  }
+  .slider-group .val {
+    font-family: 'Computer Modern Serif', 'CMU Serif', serif;
+    font-size: 0.95rem;
+    min-width: 48px;
+    text-align: right;
+  }
+  .math {
+    font-family: 'Computer Modern Serif', 'CMU Serif', serif;
+    font-style: italic;
+    font-size: 1.35em;
   }
   canvas {
-    width:100%;
-    height:320px; /* fixed */
-    border-radius:6px;
-    background: linear-gradient(180deg,#ffffff,#fbfbfb);
+    width: 100%;
+    height: 320px;
+    border-radius: 10px;
+    background: #f8f7f5;
+    margin-bottom: 12px;
   }
   .footer {
-    margin-top:10px;
-    font-size:0.85rem;
-    color:#555;
-    display:flex;
-    justify-content:space-between;
-    gap:10px;
-    flex-wrap:wrap;
+    background: #f8f7f5;
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .footer .item {
+    font-family: 'Computer Modern Serif', 'CMU Serif', serif;
+    font-size: 1.1rem;
+    color: #444;
   }
 </style>
 </head>
 <body>
-<div class="sigmoid-widget" id="sigmoid-widget">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <strong>Regressão Logística: \( f(x) = \frac{1}{1 + e^{-(a x + b)}} \)</strong>
-  </div>
 
-  <div class="controls">
-    <div class="control">
-      <label for="a-range">a (coeficiente angular)</label>
-      <div class="row">
-        <input id="a-range" type="range" min="-10" max="10" step="0.01" value="1">
-        <input id="a-value" class="value" type="number" step="0.01" value="1">
-      </div>
-    </div>
-
-    <div class="control">
-      <label for="b-range">b (intercepto)</label>
-      <div class="row">
-        <input id="b-range" type="range" min="-10" max="10" step="0.01" value="0">
-        <input id="b-value" class="value" type="number" step="0.01" value="0">
-      </div>
+<div class="controls">
+  <div class="slider-group">
+    <label><span class="math">a</span> (coeficiente angular)</label>
+    <div class="row">
+      <input id="a-range" type="range" min="-10" max="10" step="0.01" value="1">
+      <span class="val" id="a-val">1.00</span>
     </div>
   </div>
-
-  <canvas id="sigmoid-canvas"></canvas>
-
-  <div class="footer">
-    <div class="mini" id="formula-params">a = 1, b = 0</div>
-    <div class="mini">f(0) = <span id="f0">0.5</span></div>
+  <div class="slider-group">
+    <label><span class="math">b</span> (intercepto)</label>
+    <div class="row">
+      <input id="b-range" type="range" min="-10" max="10" step="0.01" value="0">
+      <span class="val" id="b-val">0.00</span>
+    </div>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<canvas id="canvas"></canvas>
+
+<div class="footer">
+  <div class="item"><span class="math">a</span> = <span class="val" id="a-display">1.00</span>, <span class="math">b</span> = <span class="val" id="b-display">0.00</span></div>
+  <div class="item"><span class="math" style="margin-right:3px">f</span>(0) = <span class="val" id="f0-display">0.5000</span></div>
+</div>
+
 <script>
 (function(){
-  const canvas = document.getElementById('sigmoid-canvas');
+  const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
 
   const aRange = document.getElementById('a-range');
-  const aValue = document.getElementById('a-value');
   const bRange = document.getElementById('b-range');
-  const bValue = document.getElementById('b-value');
+  const aVal = document.getElementById('a-val');
+  const bVal = document.getElementById('b-val');
+  const aDisplay = document.getElementById('a-display');
+  const bDisplay = document.getElementById('b-display');
+  const f0Display = document.getElementById('f0-display');
 
-  const paramsText = document.getElementById('formula-params');
-  const f0Text = document.getElementById('f0');
+  aRange.addEventListener('input', update);
+  bRange.addEventListener('input', update);
 
-  function link(range, number){
-    range.addEventListener('input', ()=>{ number.value = range.value; draw(); });
-    number.addEventListener('input', ()=>{ range.value = number.value; draw(); });
-  }
-  link(aRange, aValue);
-  link(bRange, bValue);
-
-  function resizeCanvas(){
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = Math.round(rect.width * dpr);
-    canvas.height = Math.round(rect.height * dpr);
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-    draw();
-  }
-  window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
-
-  function sigmoid(x, a, b){
+  function sigmoid(x, a, b) {
     return 1 / (1 + Math.exp(-(a * x + b)));
   }
 
-  function draw(){
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw();
+  }
+  window.addEventListener('resize', resizeCanvas);
+
+  function update() {
     const a = parseFloat(aRange.value) || 0;
     const b = parseFloat(bRange.value) || 0;
-    const xmin = -8
-    const xmax = 8;
-    const points = 100
+    aVal.textContent = a.toFixed(2);
+    bVal.textContent = b.toFixed(2);
+    aDisplay.textContent = a.toFixed(2);
+    bDisplay.textContent = b.toFixed(2);
+    f0Display.textContent = sigmoid(0, a, b).toFixed(4);
+    draw();
+  }
 
-    paramsText.textContent = `a = ${a.toFixed(2)}, b = ${b.toFixed(2)}`;
-    f0Text.textContent = sigmoid(0, a, b).toFixed(4);
+  function draw() {
+    const a = parseFloat(aRange.value) || 0;
+    const b = parseFloat(bRange.value) || 0;
+    const xmin = -8, xmax = 8;
+    const points = 200;
 
     const W = canvas.width / dpr;
     const H = canvas.height / dpr;
-    ctx.clearRect(0,0,W,H);
+    ctx.clearRect(0, 0, W, H);
 
-    const margin = {left:54, right:14, top:12, bottom:36};
+    const margin = { left: 50, right: 16, top: 16, bottom: 36 };
     const plotW = W - margin.left - margin.right;
     const plotH = H - margin.top - margin.bottom;
 
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0,0,W,H);
+    // Background
+    ctx.fillStyle = '#f8f7f5';
+    ctx.fillRect(0, 0, W, H);
 
     ctx.save();
     ctx.translate(margin.left, margin.top);
 
-    const xSteps = 8;
-    const ySteps = 5;
+    // Grid
+    const xSteps = 8, ySteps = 5;
     ctx.lineWidth = 1;
-    ctx.strokeStyle = '#eee';
-    for(let i=0;i<=xSteps;i++){
-      const x = (i/xSteps) * plotW;
-      ctx.beginPath();
-      ctx.moveTo(x,0); ctx.lineTo(x,plotH); ctx.stroke();
+    ctx.strokeStyle = '#e8e6e3';
+    for (let i = 0; i <= xSteps; i++) {
+      const x = (i / xSteps) * plotW;
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, plotH); ctx.stroke();
     }
-    for(let j=0;j<=ySteps;j++){
-      const y = (j/ySteps) * plotH;
-      ctx.beginPath();
-      ctx.moveTo(0,y); ctx.lineTo(plotW,y); ctx.stroke();
+    for (let j = 0; j <= ySteps; j++) {
+      const y = (j / ySteps) * plotH;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(plotW, y); ctx.stroke();
     }
 
+    // Axes
     ctx.lineWidth = 1.5;
-    ctx.strokeStyle = '#bbb';
+    ctx.strokeStyle = '#ccc';
     const yMid = plotH * (1 - 0.5);
-    ctx.beginPath(); ctx.moveTo(0,yMid); ctx.lineTo(plotW,yMid); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,plotH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, yMid); ctx.lineTo(plotW, yMid); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, plotH); ctx.stroke();
 
-    ctx.fillStyle = '#333';
-    ctx.font = '12px system-ui, Arial';
+    // Labels
+    ctx.fillStyle = '#888';
+    ctx.font = "12px 'Inter', sans-serif";
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    for(let i=0;i<=xSteps;i++){
-      const t = i/xSteps;
+    for (let i = 0; i <= xSteps; i++) {
+      const t = i / xSteps;
       const x = t * plotW;
-      const xv = xmin + t*(xmax-xmin);
-      ctx.fillText(xv.toFixed(1), x, plotH + 6);
+      const xv = xmin + t * (xmax - xmin);
+      ctx.fillText(xv.toFixed(0), x, plotH + 6);
     }
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
-    for(let j=0;j<=ySteps;j++){
-      const t = j/ySteps;
+    for (let j = 0; j <= ySteps; j++) {
+      const t = j / ySteps;
       const y = t * plotH;
       const yv = 1 - t;
-      ctx.fillText(yv.toFixed(2), -8, y);
+      ctx.fillText(yv.toFixed(1), -8, y);
     }
 
+    // Y-axis label
     ctx.save();
-    ctx.translate(-42, plotH/2);
-    ctx.rotate(-Math.PI/2);
-    ctx.textAlign = 'center';
-    ctx.fillText('f(x)', 0, 0);
+    ctx.translate(-38, plotH / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#888';
+    const itF = "italic 15px 'Computer Modern Serif', 'CMU Serif', serif";
+    const rmF = "15px 'Computer Modern Serif', 'CMU Serif', serif";
+    const segs = [{t:'f',f:itF,after:3},{t:'(',f:rmF,after:0},{t:'x',f:itF,after:0},{t:')',f:rmF,after:0}];
+    let tw = 0;
+    for (const s of segs) { ctx.font = s.f; tw += ctx.measureText(s.t).width + s.after; }
+    let px = -tw / 2;
+    for (const s of segs) { ctx.font = s.f; ctx.fillText(s.t, px, 0); px += ctx.measureText(s.t).width + s.after; }
     ctx.restore();
 
+    // Sigmoid curve
     ctx.lineWidth = 2.5;
-    ctx.strokeStyle = '#0275d8';
+    ctx.strokeStyle = '#007cba';
     ctx.beginPath();
-    for(let i=0;i<=points;i++){
-      const t = i/points;
-      const xv = xmin + t*(xmax-xmin);
+    for (let i = 0; i <= points; i++) {
+      const t = i / points;
+      const xv = xmin + t * (xmax - xmin);
       const yv = sigmoid(xv, a, b);
       const cx = t * plotW;
       const cy = (1 - yv) * plotH;
-      if(i===0) ctx.moveTo(cx, cy);
+      if (i === 0) ctx.moveTo(cx, cy);
       else ctx.lineTo(cx, cy);
     }
     ctx.stroke();
 
-    if(xmin <= 0 && xmax >= 0){
+    // Point at x=0
+    if (xmin <= 0 && xmax >= 0) {
       const t0 = (0 - xmin) / (xmax - xmin);
       const x0 = t0 * plotW;
       const y0 = sigmoid(0, a, b);
       const cy0 = (1 - y0) * plotH;
       ctx.fillStyle = '#d9534f';
       ctx.beginPath();
-      ctx.arc(x0, cy0, 4.5, 0, Math.PI*2);
+      ctx.arc(x0, cy0, 5, 0, Math.PI * 2);
       ctx.fill();
-      ctx.font = '12px system-ui';
+      ctx.font = "12px 'Inter', sans-serif";
       ctx.textAlign = 'left';
       ctx.textBaseline = 'bottom';
-      ctx.fillText(`x=0 → ${y0.toFixed(4)}`, x0 + 8, cy0 - 6);
+      ctx.fillStyle = '#d9534f';
+      ctx.fillText(`x=0 → ${y0.toFixed(4)}`, x0 + 10, cy0 - 8);
     }
 
     ctx.restore();
   }
 
-  draw();
+  resizeCanvas();
+  update();
+
+
 })();
 </script>
 </body>
 </html>
-
